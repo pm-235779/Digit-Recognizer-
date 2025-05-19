@@ -1,0 +1,165 @@
+
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Digit Recognizer</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(to right, #1f1c2c, #928dab); /* dark purple/gray gradient */
+      color: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 2rem;
+      animation: fadeIn 1s ease-out;
+    }
+
+    input[type="file"] {
+      margin-bottom: 20px;
+      background: #2e2e3a;
+      color: #ccc;
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    input[type="file"]:hover {
+      background-color: #3d3d4f;
+    }
+
+    button {
+      background: linear-gradient(to right, #4e54c8, #8f94fb);
+      border: none;
+      padding: 12px 28px;
+      color: white;
+      border-radius: 30px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      opacity: 0.95;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 1.4rem;
+      animation: fadeIn 0.6s ease-in;
+      color: #fff;
+    }
+
+    #preview {
+      display: none;
+      margin-top: 20px;
+      border: 3px solid #666;
+      border-radius: 12px;
+      max-width: 90%;
+      max-height: 280px;
+      animation: fadeIn 1s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Animated wave background */
+    .wave-bg {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 200%;
+      height: 250px;
+      background: linear-gradient(to right, rgba(255,255,255,0.05), rgba(255,255,255,0));
+      animation: wave 12s infinite linear;
+      transform: rotate(180deg);
+      opacity: 0.15;
+      z-index: 0;
+    }
+
+    @keyframes wave {
+      0% { transform: translateX(0) rotate(180deg); }
+      100% { transform: translateX(-50%) rotate(180deg); }
+    }
+
+    @media (max-width: 600px) {
+      h2 { font-size: 1.5rem; }
+      button { font-size: 0.9rem; padding: 10px 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wave-bg"></div>
+
+  <h2>Digit Recognizer</h2>
+
+  <input type="file" accept="image/*" id="fileInput">
+  <button onclick="predict()">Predict</button>
+
+  <h3 id="result"></h3>
+  <img id="preview" src="#" alt="Image Preview"/>
+
+  <script>
+    let uploadedImage = null;
+
+    document.getElementById('fileInput').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        uploadedImage = event.target.result;
+        const preview = document.getElementById('preview');
+        preview.src = uploadedImage;
+        preview.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function predict() {
+      if (!uploadedImage) {
+        alert("Please upload an image first.");
+        return;
+      }
+
+      fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: uploadedImage })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('result').innerText = "Predicted: " + data.prediction;
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Error predicting the digit.");
+      });
+    }
+  </script>
+</body>
+</html> 
